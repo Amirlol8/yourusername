@@ -1,0 +1,43 @@
+import os
+import requests
+from PIL import Image
+from io import BytesIO
+import pytesseract
+import cv2
+
+pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
+
+def read_text_from_image(image_url):
+    response = requests.get(image_url)
+    img = Image.open(BytesIO(response.content))
+    text = pytesseract.image_to_string(img)
+    return text
+
+def translate_text(text, source_language, target_language):
+    url = "https://google-translate1.p.rapidapi.com/language/translate/v2"
+    querystring = {"q": text, "source": source_language, "target": target_language}
+    headers = {
+        "x-rapidapi-host": "google-translate1.p.rapidapi.com",
+        "x-rapidapi-key": "your_api_key",
+        "accept-encoding": "application/gzip"
+    }
+    response = requests.request("GET", url, headers=headers, params=querystring)
+    translation = response.json()['data']['translations'][0]['translatedText']
+    return translation
+
+def display_image(image_url):
+    response = requests.get(image_url)
+    img = Image.open(BytesIO(response.content))
+    img.show()
+    
+image_url = "https://i.imgur.com/GiSZHGB.png"
+display_image(image_url)
+
+text = read_text_from_image(image_url)
+print("OCR Text:\n", text)
+
+translated_text = translate_text(text, "en", "fa")
+print("Translated Text (fa):\n", translated_text)
+
+translated_text = translate_text(text, "en", "es")
+print("Translated Text (es):\n", translated_text)
